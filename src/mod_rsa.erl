@@ -1,4 +1,4 @@
--module(mod_rsa_two).
+-module(mod_rsa).
 
 
 -behaviour(gen_mod).
@@ -29,8 +29,8 @@ other_jid = <<>> :: binary()}).
 % -type query() :: #query{}.
 
 get_mod(<<"query">>, <<"jabber:e2eencryption">>) ->
-		mod_rsa_two.
-get_mod({query, _, _}) -> mod_rsa_two.
+	mod_rsa.
+get_mod({query, _, _}) -> mod_rsa.
 
 do_decode(<<"query">>, <<"jabber:e2eencryption">>, El,
 	  Opts) ->
@@ -107,7 +107,7 @@ encode_query_attr_other_jid(_val, _acc) ->
 
 start(Host, _Opts) ->
 	?INFO_MSG("Starting mod_rsa", [] ),
-	xmpp:register_codec(mod_rsa_two),
+	xmpp:register_codec(mod_rsa),
 	% register(?PROCNAME,spawn(?MODULE, init, [Host, Opts])),  
 	gen_iq_handler:add_iq_handler(ejabberd_sm, Host,?NS_OPENPGP, ?MODULE, process_iq_now),
 	gen_iq_handler:add_iq_handler(ejabberd_local, Host,?NS_OPENPGP, ?MODULE, process_iq_now),
@@ -130,15 +130,19 @@ stop(Host) ->
 	gen_iq_handler:remove_iq_handler(ejabberd_local, Host, ?NS_OPENPGP),
 	% ejabberd_hooks:delete(offline_message_hook, Host,
 	% 			  ?MODULE, rsa_decrypt, 10),
-	xmpp:unregister_codec(mod_rsa_two),
+	xmpp:unregister_codec(mod_rsa),
 
 	ok.
 
 -spec process_iq_now(iq()) -> iq().
 process_iq_now(#iq{from = From, to = To, sub_els = [#query{group_jid = GroupJid, other_jid = OtherJid}]} = IQ) ->
 
-	KeyFolderPath = "/home/hb/Desktop/private-keys/",
-
+	%KeyFolderPath = "/home/hb/Desktop/private-keys/",
+	KeyFolderPath = "/opt/ejabberd/.ejabberd-modules/mod_rsa/keys/",
+	
+	{ok, CurrentDirectory} = file:get_cwd(),
+	filelib:ensure_dir(CurrentDirectory ++ "/../../.ejabberd-modules/mod_rsa/keys/"),
+	?INFO_MSG("CurrentDirectory ~p , ~p ", [CurrentDirectory,filelib:file_size("/home/hb/Desktop/private-keys/")] ),
 	?INFO_MSG("IQ processed ~p , ~p", [OtherJid,GroupJid] ),
 
 	% ejabberd_router:route(To,From,IQ#iq{type = result,
