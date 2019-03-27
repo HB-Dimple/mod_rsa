@@ -109,8 +109,9 @@ start(Host, _Opts) ->
 	?INFO_MSG("Starting mod_rsa", [] ),
 	xmpp:register_codec(mod_rsa),
 	% register(?PROCNAME,spawn(?MODULE, init, [Host, Opts])),  
-	gen_iq_handler:add_iq_handler(ejabberd_sm, Host,?NS_OPENPGP, ?MODULE, process_iq_now),
-	gen_iq_handler:add_iq_handler(ejabberd_local, Host,?NS_OPENPGP, ?MODULE, process_iq_now),
+	IQDisc = gen_mod:get_opt(iqdisc, _Opts, one_queue),
+	gen_iq_handler:add_iq_handler(ejabberd_sm, Host,?NS_OPENPGP, ?MODULE, process_iq_now,IQDisc),
+	gen_iq_handler:add_iq_handler(ejabberd_local, Host,?NS_OPENPGP, ?MODULE, process_iq_now,IQDisc),
 	?INFO_MSG("Iq registered", [] ),
 	ok.
 
