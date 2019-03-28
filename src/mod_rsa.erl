@@ -111,6 +111,7 @@ start(Host, _Opts) ->
 	% register(?PROCNAME,spawn(?MODULE, init, [Host, Opts])),  
 	IQDisc = gen_mod:get_opt(iqdisc, _Opts, one_queue),
 	gen_iq_handler:add_iq_handler(ejabberd_sm, Host,?NS_OPENPGP, ?MODULE, process_iq_now,IQDisc),
+	
 	gen_iq_handler:add_iq_handler(ejabberd_local, Host,?NS_OPENPGP, ?MODULE, process_iq_now,IQDisc),
 	?INFO_MSG("Iq registered", [] ),
 	ok.
@@ -194,11 +195,20 @@ process_iq_now(#iq{from = From, to = To, sub_els = [#query{group_jid = GroupJid,
 					{ok, PemBin } = file:read_file(PrivKeyPath),
 					{ok, PublicKeyBin } = file:read_file(PublicKeyPath),
 
+					% ejabberd_router:route(To,From,IQ#iq{type = result,
+					% 				sub_els = [#xmlel{name = <<"PrivateKey">>,
+					% 							children = [{xmlcdata, PemBin}]},
+					% 						#xmlel{name = <<"PublicKey">>,
+					% 							children = [{xmlcdata, PublicKeyBin}]}]});
 					ejabberd_router:route(To,From,IQ#iq{type = result,
-									sub_els = [#xmlel{name = <<"PrivateKey">>,
-												children = [{xmlcdata, PemBin}]},
-											#xmlel{name = <<"PublicKey">>,
-												children = [{xmlcdata, PublicKeyBin}]}]});
+									sub_els = [
+									#xmlel{name = <<"Key">>,
+											children = [#xmlel{name = <<"PrivateKey">>,
+														children = [{xmlcdata, PemBin}]},
+													#xmlel{name = <<"PublicKey">>,
+														children = [{xmlcdata, PublicKeyBin}]}]}]	
+													});
+										
 				true ->
 					ejabberd_router:route(To,From,IQ#iq{type = error,
 					sub_els = [#xmlel{name = <<"text">>,
@@ -247,9 +257,16 @@ process_iq_now(#iq{from = From, to = To, sub_els = [#query{group_jid = GroupJid,
 					% {ok, PemBin } = file:read_file(PrivKeyPath),
 					{ok, PublicKeyBin } = file:read_file(PublicKeyPath),
 
+					% ejabberd_router:route(To,From,IQ#iq{type = result,
+					% 					sub_els = [#xmlel{name = <<"PublicKey">>,
+					% 								children = [{xmlcdata, PublicKeyBin}]}]});
+
 					ejabberd_router:route(To,From,IQ#iq{type = result,
-										sub_els = [#xmlel{name = <<"PublicKey">>,
-													children = [{xmlcdata, PublicKeyBin}]}]});
+						sub_els = [
+						#xmlel{name = <<"Key">>,
+										children = [#xmlel{name = <<"PublicKey">>,
+													children = [{xmlcdata, PublicKeyBin}]}]}]	
+						});
 				true -> 
 						ejabberd_router:route(To,From,IQ#iq{type = error,
 						sub_els = [#xmlel{name = <<"text">>,
@@ -278,12 +295,19 @@ process_iq_now(#iq{from = From, to = To, sub_els = [#query{group_jid = GroupJid,
 					end,
 					{ok, PemBin } = file:read_file(PrivKeyPath),
 					{ok, PublicKeyBin } = file:read_file(PublicKeyPath),
-
+% 					ejabberd_router:route(To,From,IQ#iq{type = result,
+% 							sub_els = [#xmlel{name = <<"PrivateKey">>,
+% 										children = [{xmlcdata, PemBin}]},
+% 									#xmlel{name = <<"PublicKey">>,
+% 										children = [{xmlcdata, PublicKeyBin}]}]});
 					ejabberd_router:route(To,From,IQ#iq{type = result,
-							sub_els = [#xmlel{name = <<"PrivateKey">>,
-										children = [{xmlcdata, PemBin}]},
-									#xmlel{name = <<"PublicKey">>,
-										children = [{xmlcdata, PublicKeyBin}]}]});
+						sub_els = [
+						#xmlel{name = <<"Key">>,
+										children = [#xmlel{name = <<"PrivateKey">>,
+														children = [{xmlcdata, PemBin}]},
+													#xmlel{name = <<"PublicKey">>,
+														children = [{xmlcdata, PublicKeyBin}]}]}]	
+						});
 					
 					true ->
 							ejabberd_router:route(To,From,IQ#iq{type = error,
