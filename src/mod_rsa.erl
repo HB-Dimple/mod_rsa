@@ -15,7 +15,6 @@
 -define(PROCNAME, ?MODULE).
 -define(NS_OPENPGP, <<"jabber:e2eencryption">>).
 
--include("ejabberd.hrl").
 -include("logger.hrl").
 -include("xmpp.hrl").
 -include("mod_roster.hrl").
