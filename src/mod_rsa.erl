@@ -1,7 +1,7 @@
 -module(mod_rsa).
 
 
--behaviour(gen_mod).
+%-behaviour(gen_mod).
 
 -export([start/2,
 	%  init/2,
